@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 // Replace with your key from web3forms.com
-const WEB3FORMS_ACCESS_KEY = 'YOUR_ACCESS_KEY_HERE'
+const WEB3FORMS_ACCESS_KEY = '4c11c41d-e334-4688-a2b3-4f86213e2475'
 
 export default function Contact() {
   const [status, setStatus] = useState({ text: '', type: '' })
