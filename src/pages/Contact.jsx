@@ -9,35 +9,64 @@ export default function Contact() {
   const [sending, setSending] = useState(false)
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setSending(true)
-    setStatus({ text: 'Sending your message…', type: '' })
+  e.preventDefault()
+  setSending(true)
+  setStatus({ text: 'Sending your message…', type: '' })
 
-    const form = e.target
-    const formData = new FormData(form)
-    formData.append('access_key', WEB3FORMS_ACCESS_KEY)
-    formData.append('subject', 'New enquiry from Tafsol Digital website')
+  const form = e.currentTarget
+  const formData = new FormData(form)
+
+  formData.append('access_key', WEB3FORMS_ACCESS_KEY)
+  formData.append('subject', 'New enquiry from Tafsol Digital website')
+
+  try {
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+      },
+      body: formData,
+    })
+
+    const text = await res.text()
+
+    console.log('Web3Forms HTTP status:', res.status)
+    console.log('Web3Forms raw response:', text)
+
+    let data
 
     try {
-      const res = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { Accept: 'application/json' },
-        body: formData,
-      })
-      const data = await res.json()
-
-      if (data.success) {
-        setStatus({ text: "Thanks — your message is in. We'll reply within one business day.", type: 'ok' })
-        form.reset()
-      } else {
-        setStatus({ text: data.message || 'Something went wrong. Please try again or reach us on WhatsApp.', type: 'err' })
-      }
+      data = JSON.parse(text)
     } catch {
-      setStatus({ text: 'Network error — please try again or message us on WhatsApp.', type: 'err' })
-    } finally {
-      setSending(false)
+      throw new Error(`Invalid response from Web3Forms: ${text}`)
     }
+
+    console.log('Web3Forms parsed response:', data)
+
+    if (res.ok && data.success) {
+      setStatus({
+        text: "Thanks — your message is in. We'll reply within one business day.",
+        type: 'ok',
+      })
+
+      form.reset()
+    } else {
+      setStatus({
+        text: data.message || `Web3Forms error (${res.status})`,
+        type: 'err',
+      })
+    }
+  } catch (error) {
+    console.error('Contact form error:', error)
+
+    setStatus({
+      text: error.message || 'Network error — please try again or message us on WhatsApp.',
+      type: 'err',
+    })
+  } finally {
+    setSending(false)
   }
+}
 
   return (
     <>
